@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VÒNG QUAY HOANTOM - Perfect Alignment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #ff0055;
+            --bg: #050509;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: radial-gradient(circle, #111, #050509);
+            font-family: 'Rajdhani', sans-serif;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-title {
+            font-family: 'Orbitron';
+            font-size: 2.7rem;
+            letter-spacing: 6px;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 0 0 20px var(--primary);
+        }
+
+        /* AUTH BOX */
+        .auth-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--primary);
+            padding: 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(15px);
+            text-align: center;
+            width: 320px;
+            box-shadow: 0 0 40px rgba(0, 242, 254, .2);
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 6px;
+            border: 1px solid var(--primary);
+            background: #000;
+            color: var(--primary);
+            font-family: 'Orbitron';
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            cursor: pointer;
+            font-family: 'Orbitron';
+            transition: .3s;
+        }
+
+        .btn:hover { background: var(--primary); color: #000; }
+
+        /* WHEEL STRUCTURE */
+        .wheel-wrapper {
+            position: relative;
+            width: 450px;
+            height: 450px;
+            display: none;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 18px solid transparent;
+            border-right: 18px solid transparent;
+            border-top: 35px solid var(--secondary);
+            z-index: 10;
+            filter: drop-shadow(0 0 10px var(--secondary));
+        }
+
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 12px solid #1a1a1a;
+            position: relative;
+            overflow: hidden;
+            transition: transform 5s cubic-bezier(.2, 0, .2, 1);
+            background: #000;
+            box-shadow: 0 0 50px rgba(0, 242, 254, 0.2);
+        }
+
+        /* Từng miếng tam giác */
+        .segment {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            /* Sử dụng clip-path để tạo hình quạt 90 độ chính xác */
+            clip-path: polygon(50% 50%, 100% 0, 100% 100%);
+            transform-origin: 50% 50%;
+        }
+
+        /* Xoay các miếng tam giác về đúng vị trí */
+        .segment:nth-child(1) { transform: rotate(-135deg); background: #0a0a1a; }
+        .segment:nth-child(2) { transform: rotate(-45deg); background: #121225; }
+        .segment:nth-child(3) { transform: rotate(45deg); background: #0a0a1a; }
+        .segment:nth-child(4) { transform: rotate(135deg); background: #121225; }
+
+        /* Căn chỉnh hộp quà vào GIỮA mỗi miếng tam giác */
+        .gift-box {
+            position: absolute;
+            top: 50%;
+            right: 15%; /* Đẩy quà ra phía ngoài viền một chút */
+            transform: translateY(-50%);
+            font-size: 45px;
+            z-index: 5;
+            filter: drop-shadow(0 0 10px var(--primary));
+            /* Quan trọng: xoay lại icon để nó đứng thẳng so với người nhìn */
+        }
+
+        /* Xoay ngược lại góc của segment để quà đứng thẳng */
+        .segment:nth-child(1) .gift-box { transform: translateY(-50%) rotate(135deg); }
+        .segment:nth-child(2) .gift-box { transform: translateY(-50%) rotate(45deg); }
+        .segment:nth-child(3) .gift-box { transform: translateY(-50%) rotate(-45deg); }
+        .segment:nth-child(4) .gift-box { transform: translateY(-50%) rotate(-135deg); }
+
+        /* Hiệu ứng nhịp thở cho hộp quà */
+        .gift-box span {
+            display: block;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+
+        /* SPIN BUTTON */
+        .spin-btn {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            border: 4px solid var(--primary);
+            background: #000;
+            color: var(--primary);
+            font-family: 'Orbitron';
+            font-weight: 900;
+            cursor: pointer;
+            z-index: 20;
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        /* POPUP */
+        #popup {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: #fff;
+            color: #000;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            transition: .4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+        }
+
+        #popup.active { transform: translate(-50%, -50%) scale(1); }
+        #popup h2 { font-family: 'Orbitron'; color: var(--secondary); margin: 15px 0; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="main-title">VÒNG QUAY HOANTOM</h1>
+
+        <div class="auth-box" id="authBox">
+            <p>HỆ THỐNG ĐÃ KHÓA</p>
+            <input type="password" id="code" placeholder="MẬT MÃ...">
+            <button class="btn" onclick="unlock()">GIẢI MÃ</button>
+        </div>
+
+        <div class="wheel-wrapper" id="wheelWrapper">
+            <div class="pointer"></div>
+            <div id="wheel">
+                <div class="segment"><div class="gift-box"><span>🎁</span></div></div>
+                <div class="segment"><div class="gift-box"><span>🎁</span></div></div>
+                <div class="segment"><div class="gift-box"><span>🎁</span></div></div>
+                <div class="segment"><div class="gift-box"><span>🎁</span></div></div>
+            </div>
+            <button class="spin-btn" onclick="spin()">QUAY</button>
+        </div>
+    </div>
+
+    <div id="popup">
+        <p style="color: #666; letter-spacing: 2px;">BẠN ĐÃ TRÚNG</p>
+        <h2 id="result"></h2>
+        <button class="btn" style="border-color:#000; color:#000" onclick="location.reload()">QUAY LẠI</button>
+    </div>
+
+    <script>
+        const prizes = ["TIỀN MẶT 💸", "ĐI ĂN 🍕", "ĐỒ TRANG ĐIỂM 💄", "HÔN 5 PHÁT 💋"];
+        let currentRotation = 0;
+        let canSpin = true;
+
+        function unlock() {
+            if(document.getElementById("code").value === "hoantom") {
+                document.getElementById("authBox").style.display = "none";
+                document.getElementById("wheelWrapper").style.display = "block";
+            } else {
+                alert("Sai mã!");
+            }
+        }
+
+        function spin() {
+            if(!canSpin) return;
+            canSpin = false;
+            const wheel = document.getElementById("wheel");
+            const extraSpins = Math.floor(Math.random() * 5) + 10;
+            const randomDegree = Math.floor(Math.random() * 360);
+            currentRotation += (extraSpins * 360) + randomDegree;
+            
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+            setTimeout(() => {
+                const angle = currentRotation % 360;
+                // Kim chỉ ở đỉnh (270 độ), vòng quay chia 4 ô (mỗi ô 90 độ)
+                const prizeIndex = Math.floor(((360 - angle + 270) % 360) / 90);
+                document.getElementById("result").innerText = prizes[prizeIndex];
+                document.getElementById("popup").classList.add("active");
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
